@@ -3,8 +3,11 @@ name = "nato"
 version = "0.1.0"
 edition = "2021"
 authors = ["Wouter de Bie"]
-description = "Small tool to help you spell in the NATO alphabet"
+description = "Small tool to help you spell in phonetic alphabets"
 license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+clap = { version = "3.1.6", features = ['derive'] }
+rust-embed="6.3.0"
+tabular = "0.2.0"
