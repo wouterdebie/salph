@@ -1,5 +1,6 @@
 use clap::Parser;
 use rust_embed::RustEmbed;
+use std::collections::HashMap;
 use std::{fmt::Display, io::stdin};
 use tabular::{Row, Table};
 
@@ -57,14 +58,11 @@ fn main() {
     };
 
     // Create a table with every letter mapped to a word from the alphabet
-    // TODO: I don't like that the actual mapping happens inside the loop
-    //       where formatting happens, but it's probably the most efficient way
     let mut table = Table::new("{:<}  {:<}");
     for word in sentence {
         table.add_row(
             Row::new().with_cell(&word).with_cell(
-                word.to_lowercase()
-                    .chars()
+                word.chars()
                     .map(|c| alphabet.char_to_word(c))
                     .collect::<Vec<String>>()
                     .join(" "),
@@ -91,7 +89,7 @@ fn list_alphabets() {
 
 // Struct representing an alphabet
 struct Alphabet {
-    words: Vec<String>,
+    words: HashMap<String, String>,
 }
 
 impl Alphabet {
@@ -100,25 +98,37 @@ impl Alphabet {
         // Load the alphabet from an embedded asset into a utf8 string
         let alphabet_string = String::from_utf8_lossy(&Asset::get(&name).unwrap().data).to_string();
 
-        // Split the string and filter out empty lines
-        let words: Vec<String> = alphabet_string
+        // Split the string, filter out empty lines and turn it into a HashMap<String, String>
+        let words: HashMap<String, String> = alphabet_string
             .split('\n')
             .filter(|x| !x.is_empty())
-            .map(|x| x.to_string())
+            .map(|x| {
+                let n: Vec<String> = x.splitn(2, ' ').map(|x| x.to_string()).collect();
+                (n[0].to_lowercase(), n[1].clone())
+            })
             .collect();
         Alphabet { words }
     }
 
     /// Map a character to a word.
-    /// TODO: this assumes that the character is lower case, since it uses the ASCII code.
-    /// It might be nicer to map strings to strings probably to circumvent utf8 issues
     fn char_to_word(&self, c: char) -> String {
-        self.words.get(c as usize - 97).unwrap().clone()
+        self.words
+            .get(&c.to_string().to_lowercase())
+            .unwrap()
+            .clone()
     }
 }
 
 impl Display for Alphabet {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.words.join("\n"))
+        write!(
+            f,
+            "{}",
+            self.words
+                .values()
+                .map(|s| &**s)
+                .collect::<Vec<_>>()
+                .join("\n")
+        )
     }
 }
