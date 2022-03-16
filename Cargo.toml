@@ -1,6 +1,6 @@
 [package]
 name = "nato"
-version = "0.2.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Wouter de Bie"]
 description = "Small tool to help you spell in phonetic alphabets"
@@ -9,5 +9,7 @@ license = "MIT"
 
 [dependencies]
 clap = { version = "3.1.6", features = ['derive'] }
+indexmap = "1.8.0"
 rust-embed="6.3.0"
+substring = "1.4.5"
 tabular = "0.2.0"

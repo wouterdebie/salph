@@ -1,9 +1,9 @@
 use clap::Parser;
+use indexmap::IndexMap;
 use rust_embed::RustEmbed;
-use std::collections::HashMap;
-use std::{fmt::Display, io::stdin};
+use std::{cmp::Reverse, fmt::Display, io::stdin};
+use substring::Substring;
 use tabular::{Row, Table};
-
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
@@ -61,12 +61,9 @@ fn main() {
     let mut table = Table::new("{:<}  {:<}");
     for word in sentence {
         table.add_row(
-            Row::new().with_cell(&word).with_cell(
-                word.chars()
-                    .map(|c| alphabet.char_to_word(c))
-                    .collect::<Vec<String>>()
-                    .join(" "),
-            ),
+            Row::new()
+                .with_cell(&word)
+                .with_cell(alphabet.string_to_words(word).join(" ")),
         );
     }
     print!("{}", table);
@@ -89,7 +86,8 @@ fn list_alphabets() {
 
 // Struct representing an alphabet
 struct Alphabet {
-    words: HashMap<String, String>,
+    words: IndexMap<String, String>,
+    max_ngram_len: usize,
 }
 
 impl Alphabet {
@@ -99,7 +97,7 @@ impl Alphabet {
         let alphabet_string = String::from_utf8_lossy(&Asset::get(&name).unwrap().data).to_string();
 
         // Split the string, filter out empty lines and turn it into a HashMap<String, String>
-        let words: HashMap<String, String> = alphabet_string
+        let words: IndexMap<String, String> = alphabet_string
             .split('\n')
             .filter(|x| !x.is_empty())
             .map(|x| {
@@ -107,15 +105,73 @@ impl Alphabet {
                 (n[0].to_lowercase(), n[1].clone())
             })
             .collect();
-        Alphabet { words }
+
+        let mut prefixes: Vec<_> = words.keys().collect();
+        prefixes.sort_by_key(|b| Reverse(b.len()));
+        let max_ngram_len = prefixes[0].len();
+
+        Alphabet {
+            words,
+            max_ngram_len,
+        }
     }
 
-    /// Map a character to a word.
-    fn char_to_word(&self, c: char) -> String {
-        self.words
-            .get(&c.to_string().to_lowercase())
-            .unwrap()
-            .clone()
+    /// Map a string to a vector of words.
+    fn string_to_words(&self, s: String) -> Vec<String> {
+        // Vector we'll eventually return
+        let mut words = Vec::new();
+
+        // The algorithm works as follows (using "foobar" as an input):
+        // - We start by creating an ngram the size of `self.max_ngram_len` ("foo")
+        // - If we don't find a match in our alphabet, we decrease the size of our
+        //   ngram ("fo") and try again
+        // - If we do match, we add the result to our result vector and
+        //   advance the start iterator to the character that wasn't part of the
+        //   match.
+
+        // We loop using an explicit iterator here, since we need to
+        // advance the iterator manually
+        let mut it = 0..s.len();
+
+        // Start iterator
+        while let Some(start) = it.next() {
+            // Iterator counting down from `self.max_ngram_len` to 1, since
+            // a the substring function that is used is excluding the end_index.
+            // We start at `self.max_ngram_len`, since we want the largest match to
+            // happen first (e.g. in Spanish, ll needs to match before l).
+            for j in (1..=self.max_ngram_len).rev() {
+                // Define the end index
+                let end = start + j;
+
+                // Make sure we don't go past the end of the string
+                if end <= s.len() {
+                    // Create an ngram
+                    let ngram = s.substring(start, end).to_string();
+
+                    // If we have a match, we add it to our result vector and
+                    // advance the start iterator.
+                    // Extra advancement is only necessary if the ngram was larger than
+                    // one character. We take consume the nth element from the iterator
+                    // where n is the length of the ngram - 2. The number comes from the
+                    // fact that it.nth(0) is the next element and the element we want to
+                    // make sure is consumed is the length - 1.
+                    // E.g. if the ngram was of length 2, we've already consumed the first
+                    // at the start of the iterator and we would only need to consume the next one,
+                    // which is it.nth(0). If the ngram was of length 3, we again, already
+                    // consumed the first element and we need to the next two one (0 and 1),
+                    // hence nth(1) or nth(3-2)
+                    if let Some(word) = self.words.get(&ngram) {
+                        words.push(word.clone());
+                        if ngram.len() > 1 {
+                            it.nth(ngram.len() - 2);
+                            // And we break the inner loop, because we need to reset the end
+                            break;
+                        }
+                    };
+                }
+            }
+        }
+        words
     }
 }
 
@@ -125,8 +181,8 @@ impl Display for Alphabet {
             f,
             "{}",
             self.words
-                .values()
-                .map(|s| &**s)
+                .iter()
+                .map(|s| format!("{} {}", s.0.clone().to_uppercase(), s.1))
                 .collect::<Vec<_>>()
                 .join("\n")
         )
