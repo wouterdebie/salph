@@ -1,8 +1,10 @@
 # Phonetic
+Small application and rust library that helps you spell sentences in the phonetic alphabets.
 
-Small application that helps you spell sentences in the phonetic alphabets.
+## Installation
+`cargo install phonetic`
 
-## Usage
+## Usage (cli)
 
 ```
 USAGE:
@@ -22,6 +24,10 @@ OPTIONS:
 `phon` can also be used through `stdin`:
 
 `$ echo "some sentence" | phon`
+
+## Usage (library)
+
+See usage documentation at https://docs.rs/phonetic/latest/phonetic/
 
 ## Building
 

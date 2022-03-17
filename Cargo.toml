@@ -2,7 +2,7 @@
 name = "phonetic"
 version = "0.1.1"
 edition = "2021"
-authors = ["Wouter de Bie"]
+authors = ["Wouter de Bie <wouter@evenflow.nl>"]
 description = "Small tool to help you spell in phonetic alphabets"
 license = "MIT"
 repository = "https://github.com/wouterdebie/phonetic/"
