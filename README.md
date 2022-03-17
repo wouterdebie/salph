@@ -1,7 +1,9 @@
 # Phonetic
+
 Small application and rust library that helps you spell sentences in the phonetic alphabets.
 
 ## Installation
+
 `cargo install phonetic`
 
 ## Usage (cli)
@@ -14,7 +16,7 @@ ARGS:
     <SENTENCE>...
 
 OPTIONS:
-    -a, --alphabet <ALPHABET>              Alphabet to use [default: nato]
+    -a, --alphabet <ALPHABET>              Alphabet to use [env: PHON_ALPHABET=] [default: nato]
     -h, --help                             Print help information
     -l, --list-alphabets                   List available alphabets
     -s, --show-alphabet <SHOW_ALPHABET>    Show the contents of an alphabet
@@ -24,6 +26,8 @@ OPTIONS:
 `phon` can also be used through `stdin`:
 
 `$ echo "some sentence" | phon`
+
+Note that the alphabet can be set through either the `-a` command line option or the `PHON_ALPHABET` environment variable.
 
 ## Usage (library)
 
