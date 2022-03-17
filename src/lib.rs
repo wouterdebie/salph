@@ -1,105 +1,63 @@
-use clap::Parser;
+#![doc(html_root_url = "https://docs.rs/phonetic/1/")]
+//! phonetic is a library that allows you to transform [`&str`]s to [`Vec`]s of words
+//! from phonetic alphabets.
+//!
+//! Usage:
+//! ```
+//! use phonetic::Alphabet;
+//!
+//! let alphabet = Alphabet::load("nato").unwrap();
+//! let phonetic = alphabet.string_to_words("abc".to_string());
+//! assert_eq!(phonetic, ["Alpha", "Bravo", "Charlie"])
+//! ```
+//!
+//! Supported alphabets can be found in `alphabets/`
+
 use indexmap::IndexMap;
 use rust_embed::RustEmbed;
-use std::{cmp::Reverse, fmt::Display, io::stdin};
+use std::{cmp::Reverse, fmt::Display};
 use substring::Substring;
-use tabular::{Row, Table};
-#[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
-struct Args {
-    /// Alphabet to use
-    #[clap(short, long, default_value_t = String::from("nato"), validator = validate_alphabet)]
-    alphabet: String,
-    sentence: Vec<String>,
-
-    /// List available alphabets
-    #[clap(short, long)]
-    list_alphabets: bool,
-
-    /// Show the contents of an alphabet
-    #[clap(short, long, validator = validate_alphabet)]
-    show_alphabet: Option<String>,
-}
-/// Validate if there's a mapping for the given alphabet
-fn validate_alphabet(s: &str) -> Result<(), String> {
-    Asset::iter()
-        .any(|x| x == s)
-        .then(|| ())
-        .ok_or(format!("Unknown alphabet: {}", s))
-}
 
 #[derive(RustEmbed)]
 #[folder = "alphabets"]
 struct Asset;
 
-fn main() {
-    let cli = Args::parse();
-
-    // List available alphabets
-    if cli.list_alphabets {
-        list_alphabets();
-        return;
-    }
-
-    // Show the contents of an alphabet
-    if let Some(alphabet) = cli.show_alphabet {
-        println!("{}", Alphabet::load(alphabet));
-        return;
-    }
-
-    // Select current alphabet
-    let alphabet = Alphabet::load(cli.alphabet);
-
-    // Read the sentence from either stdin or arguments
-    let sentence: Vec<String> = if cli.sentence.is_empty() {
-        read_from_stdin()
-    } else {
-        cli.sentence.into_iter().collect()
-    };
-
-    // Create a table with every letter mapped to a word from the alphabet
-    let mut table = Table::new("{:<}  {:<}");
-    for word in sentence {
-        table.add_row(
-            Row::new()
-                .with_cell(&word)
-                .with_cell(alphabet.string_to_words(word).join(" ")),
-        );
-    }
-    print!("{}", table);
-}
-
-/// Read a sentence from stdin and convert it to a Vector of Strings
-fn read_from_stdin() -> Vec<String> {
-    let mut input = String::new();
-    stdin().read_line(&mut input).unwrap();
-    input.trim().split(' ').map(|s| s.to_string()).collect()
-}
-
-/// List all available alphabets
-fn list_alphabets() {
-    println!("Available alphabets: ");
-    for file in Asset::iter() {
-        println!("  - {}", file.as_ref());
-    }
-}
-
 // Struct representing an alphabet
-struct Alphabet {
+#[derive(Debug)]
+pub struct Alphabet {
     words: IndexMap<String, String>,
     max_ngram_len: usize,
 }
 
+// Error returned when an alphabet can't be found
+#[derive(Debug)]
+pub struct AlphabetNotFoundError {}
+
+/// Struct that represents an Alphabet
 impl Alphabet {
     /// Load an alphabet based on it's name
-    fn load(name: String) -> Alphabet {
+    /// ```
+    /// use phonetic::Alphabet;
+    ///
+    /// let alphabet = Alphabet::load("nato");
+    ///
+    /// assert_eq!(alphabet.is_ok(), true);
+    /// ```
+    pub fn load(name: &str) -> Result<Alphabet, AlphabetNotFoundError> {
         // Load the alphabet from an embedded asset into a utf8 string
-        let alphabet_string = String::from_utf8_lossy(&Asset::get(&name).unwrap().data).to_string();
+        let embedded_file_option = Asset::get(name);
+        let embedded_file = match &embedded_file_option {
+            Some(f) => f,
+            None => {
+                return Err(AlphabetNotFoundError {});
+            }
+        };
+        let alphabet_string = String::from_utf8_lossy(&embedded_file.data).to_string();
 
         // Split the string, filter out empty lines and turn it into a HashMap<String, String>
         let words: IndexMap<String, String> = alphabet_string
             .split('\n')
-            .filter(|x| !x.is_empty())
+            .filter(|x| !x.is_empty() && !x.starts_with('#')) // filter empty lines and comments
             .map(|x| {
                 let n: Vec<String> = x.splitn(2, ' ').map(|x| x.to_string()).collect();
                 (n[0].to_lowercase(), n[1].clone())
@@ -110,14 +68,64 @@ impl Alphabet {
         prefixes.sort_by_key(|b| Reverse(b.len()));
         let max_ngram_len = prefixes[0].len();
 
-        Alphabet {
+        Ok(Alphabet {
             words,
             max_ngram_len,
-        }
+        })
     }
 
-    /// Map a string to a vector of words.
-    fn string_to_words(&self, s: String) -> Vec<String> {
+    /// Validate if there's a mapping for the given alphabet
+    /// ```
+    /// use phonetic::Alphabet;
+    ///
+    /// let res = Alphabet::validate("nato");
+    /// assert_eq!(res.is_ok(), true);
+    ///
+    /// let res = Alphabet::validate("nonexistent");
+    /// assert_eq!(res.is_err(), true);
+    ///
+    /// ```
+    pub fn validate(s: &str) -> Result<(), String> {
+        Asset::iter()
+            .any(|x| x == s)
+            .then(|| ())
+            .ok_or(format!("Unknown alphabet: {}", s))
+    }
+
+    /// List all available alphabets. This function returns a [`Vec`] of tuples
+    /// containing the `(alphabet abreviation, long name)` (e.g. `("fr-BE", "French (Belgum)")`)
+    /// ```
+    /// use phonetic::Alphabet;
+    ///
+    /// let alphabets = Alphabet::list();
+    /// assert!(alphabets.len() > 0);
+    /// ```
+    pub fn list() -> Vec<(String, String)> {
+        let files: Vec<String> = Asset::iter().map(|a| a.to_string()).collect();
+        let mut result: Vec<(String, String)> = files
+            .iter()
+            .map(|x| {
+                let file = Asset::get(x).unwrap();
+                let header = &String::from_utf8_lossy(&file.data)[2..];
+                (
+                    x.to_string(),
+                    header.split('\n').into_iter().next().unwrap().to_string(),
+                )
+            })
+            .collect();
+        result.sort_by(|(a, _), (b, _)| a.cmp(b));
+        result
+    }
+
+    /// Map a String to a vector of words.
+    /// ```
+    /// use phonetic::Alphabet;
+    ///
+    /// let alphabet = Alphabet::load("nato").unwrap();
+    /// let words = alphabet.string_to_words("abc".to_string());
+    /// assert_eq!(words, ["Alpha", "Bravo", "Charlie"]);
+    /// ```
+    pub fn string_to_words(&self, s: String) -> Vec<String> {
         // Vector we'll eventually return
         let mut words = Vec::new();
 
