@@ -1,12 +1,13 @@
 use clap::Parser;
 use std::io::stdin;
+use std::str::FromStr;
 use tabular::{Row, Table};
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
     /// Alphabet to use
-    #[clap(short, long, env="PHON_ALPHABET", default_value_t = String::from("nato"), validator = phonetic::Alphabet::validate)]
+    #[clap(short, long, env="PHON_ALPHABET", default_value_t = String::from("nato"), validator = phonetic::Phonetic::validate)]
     alphabet: String,
     sentence: Vec<String>,
 
@@ -15,7 +16,7 @@ struct Args {
     list_alphabets: bool,
 
     /// Show the contents of an alphabet
-    #[clap(short, long, validator = phonetic::Alphabet::validate)]
+    #[clap(short, long, validator = phonetic::Phonetic::validate)]
     show_alphabet: Option<String>,
 }
 
@@ -30,12 +31,12 @@ fn main() {
 
     // Show the contents of an alphabet
     if let Some(alphabet) = cli.show_alphabet {
-        println!("{}", phonetic::Alphabet::load(&alphabet).unwrap());
+        println!("{}", phonetic::Phonetic::from_str(&alphabet).unwrap());
         return;
     }
 
     // Select current alphabet
-    let alphabet = phonetic::Alphabet::load(&cli.alphabet).unwrap();
+    let alphabet = phonetic::Phonetic::from_str(&cli.alphabet).unwrap();
 
     // Read the sentence from either stdin or arguments
     let sentence: Vec<String> = if cli.sentence.is_empty() {
@@ -66,7 +67,7 @@ fn read_from_stdin() -> Vec<String> {
 /// List all available alphabets
 fn list_alphabets() {
     println!("Available alphabets: ");
-    for alphabet in phonetic::Alphabet::list() {
+    for alphabet in phonetic::Phonetic::list() {
         println!("  - {}: {}", alphabet.0, alphabet.1);
     }
 }
