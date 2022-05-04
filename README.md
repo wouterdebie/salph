@@ -39,7 +39,7 @@ Make sure to have Rust installed. Then build with `cargo build`.
 
 ## Alphabets
 
-The `alphabets` directory contains the current list of available alphabets, most of which are taken from https://en.wikipedia.org/wiki/Spelling_alphabet. If you want to include other alphabets, please add them and create a pull-request.
+The list of supported alphabets is available at https://docs.rs/phonetic/latest/phonetic/enum.Alphabet.html and are kept in the [alphabets](https://github.com/wouterdebie/phonetic/tree/main/alphabets) directory. Most alphabets are taken from https://en.wikipedia.org/wiki/Spelling_alphabet. If you want to include other alphabets or have corrections, please add them and create a pull-request.
 
 ## Contributing
 
