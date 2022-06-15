@@ -1,11 +1,11 @@
 [package]
-name = "phonetic"
+name = "salph"
 version = "0.2.1"
 edition = "2021"
 authors = ["Wouter de Bie <wouter@evenflow.nl>"]
-description = "Small tool to help you spell in phonetic alphabets"
+description = "Small tool to help you spell in spelling alphabets"
 license = "MIT"
-repository = "https://github.com/wouterdebie/phonetic/"
+repository = "https://github.com/wouterdebie/salph/"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -18,11 +18,11 @@ substring = "1.4.5"
 tabular = "0.2.0"
 
 [[bin]]
-name = "phon"
+name = "salph"
 path = "src/bin.rs"
 
 [lib]
-name = "phonetic"
+name = "salph"
 path = "src/lib.rs"
 
 [dev-dependencies]

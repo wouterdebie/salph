@@ -1,21 +1,21 @@
-#![doc(html_root_url = "https://docs.rs/phonetic/1/")]
-//! phonetic is a library that allows you to transform [`&str`]s to [`Vec`]s of words
-//! from phonetic alphabets.
+#![doc(html_root_url = "https://docs.rs/salph/1/")]
+//! salph is a library that allows you to transform [`&str`]s to [`Vec`]s of words
+//! from spelling alphabets.
 //!
 //! Usage:
 //! ```
-//! use phonetic::{Phonetic, Alphabet};
+//! use salph::{SpellingAlphabet, Alphabet};
 //! use std::str::FromStr;
 //!
-//! // Load a phonetic alphabet using the Alphabet enum
-//! let phonetic = Phonetic::load(Alphabet::nato).unwrap();
-//! let wordlist = phonetic.string_to_words("abc".to_string());
-//! assert_eq!(wordlist, ["Alpha", "Bravo", "Charlie"]);
+//! // Load a spelling alphabet using the Alphabet enum
+//! let spelling_alphabet = SpellingAlphabet::load(Alphabet::nato).unwrap();
+//! let word_list = spelling_alphabet.string_to_words("abc".to_string());
+//! assert_eq!(word_list, ["Alpha", "Bravo", "Charlie"]);
 //!
-//! // Load a phonetic alphabet using an &str
-//! let phonetic = Phonetic::from_str("nato").unwrap();
-//! let wordlist = phonetic.string_to_words("abc".to_string());
-//! assert_eq!(wordlist, ["Alpha", "Bravo", "Charlie"]);
+//! // Load a spelling alphabet using an &str
+//! let spelling_alphabet = SpellingAlphabet::from_str("nato").unwrap();
+//! let word_list = spelling_alphabet.string_to_words("abc".to_string());
+//! assert_eq!(word_list, ["Alpha", "Bravo", "Charlie"]);
 //! ```
 //!
 //! Supported alphabets can be found in the [`Alphabet`] struct
@@ -33,7 +33,7 @@ struct Asset;
 
 // Struct representing an alphabet
 #[derive(Debug)]
-pub struct Phonetic {
+pub struct SpellingAlphabet {
     words: IndexMap<String, String>,
     max_ngram_len: usize,
 }
@@ -43,16 +43,16 @@ pub struct Phonetic {
 pub struct AlphabetNotFoundError {}
 
 /// Struct that represents an Alphabet
-impl Phonetic {
+impl SpellingAlphabet {
     /// Load an alphabet based on it's name
     /// ```
-    /// use phonetic::{Phonetic, Alphabet};
+    /// use salph::{SpellingAlphabet, Alphabet};
     ///
-    /// let phonetic = Phonetic::load(Alphabet::nato);
+    /// let spelling_alphabet = SpellingAlphabet::load(Alphabet::nato);
     ///
-    /// assert_eq!(phonetic.is_ok(), true);
+    /// assert_eq!(spelling_alphabet.is_ok(), true);
     /// ```
-    pub fn load(name: Alphabet) -> Result<Phonetic, AlphabetNotFoundError> {
+    pub fn load(name: Alphabet) -> Result<SpellingAlphabet, AlphabetNotFoundError> {
         // Load the alphabet from an embedded asset into a utf8 string
         let embedded_file_option = Asset::get(name.to_string().as_str());
         let embedded_file = match &embedded_file_option {
@@ -77,7 +77,7 @@ impl Phonetic {
         prefixes.sort_by_key(|b| Reverse(b.len()));
         let max_ngram_len = prefixes[0].len();
 
-        Ok(Phonetic {
+        Ok(SpellingAlphabet {
             words,
             max_ngram_len,
         })
@@ -85,12 +85,12 @@ impl Phonetic {
 
     /// Validate if there's a mapping for the given alphabet
     /// ```
-    /// use phonetic::Phonetic;
+    /// use salph::SpellingAlphabet;
     ///
-    /// let res = Phonetic::validate("nato");
+    /// let res = SpellingAlphabet::validate("nato");
     /// assert_eq!(res.is_ok(), true);
     ///
-    /// let res = Phonetic::validate("nonexistent");
+    /// let res = SpellingAlphabet::validate("nonexistent");
     /// assert_eq!(res.is_err(), true);
     ///
     /// ```
@@ -102,11 +102,11 @@ impl Phonetic {
     }
 
     /// List all available alphabets. This function returns a [`Vec`] of tuples
-    /// containing the `(alphabet abreviation, long name)` (e.g. `("fr-BE", "French (Belgum)")`)
+    /// containing the `(alphabet abbreviation, long name)` (e.g. `("fr-BE", "French (Belgium)")`)
     /// ```
-    /// use phonetic::Phonetic;
+    /// use salph::SpellingAlphabet;
     ///
-    /// let alphabets = Phonetic::list();
+    /// let alphabets = SpellingAlphabet::list();
     /// assert!(alphabets.len() > 0);
     /// ```
     pub fn list() -> Vec<(String, String)> {
@@ -128,10 +128,10 @@ impl Phonetic {
 
     /// Map a String to a vector of words.
     /// ```
-    /// use phonetic::{Phonetic, Alphabet};
+    /// use salph::{SpellingAlphabet, Alphabet};
     ///
-    /// let phonetic = Phonetic::load(Alphabet::nato).unwrap();
-    /// let words = phonetic.string_to_words("abc".to_string());
+    /// let spelling_alphabet = SpellingAlphabet::load(Alphabet::nato).unwrap();
+    /// let words = spelling_alphabet.string_to_words("abc".to_string());
     /// assert_eq!(words, ["Alpha", "Bravo", "Charlie"]);
     /// ```
     pub fn string_to_words(&self, s: String) -> Vec<String> {
@@ -192,7 +192,7 @@ impl Phonetic {
     }
 }
 
-impl std::fmt::Display for Phonetic {
+impl std::fmt::Display for SpellingAlphabet {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -206,20 +206,20 @@ impl std::fmt::Display for Phonetic {
     }
 }
 
-/// Load a phonetic alphabet from a string
+/// Load a spelling alphabet from a string
 /// ```
-/// use phonetic::Phonetic;
+/// use salph::SpellingAlphabet;
 /// use std::str::FromStr;
 ///
-/// let phonetic = Phonetic::from_str("nato");
+/// let spelling_alphabet = SpellingAlphabet::from_str("nato");
 ///
-/// assert_eq!(phonetic.is_ok(), true);
+/// assert_eq!(spelling_alphabet.is_ok(), true);
 /// ```
-impl std::str::FromStr for Phonetic {
+impl std::str::FromStr for SpellingAlphabet {
     type Err = AlphabetNotFoundError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let n = Alphabet::from_str(s).unwrap();
-        Phonetic::load(n)
+        SpellingAlphabet::load(n)
     }
 }

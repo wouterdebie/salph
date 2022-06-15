@@ -1,37 +1,37 @@
-# Phonetic
+# salph
 
-Small application and rust library that helps you spell sentences in the phonetic alphabets.
+Small application and rust library that helps you spell sentences in different spelling alphabets.
 
 ## Installation
 
-`cargo install phonetic`
+`cargo install salph`
 
 ## Usage (cli)
 
 ```
 USAGE:
-    phon [OPTIONS] [SENTENCE]...
+    salph [OPTIONS] [SENTENCE]...
 
 ARGS:
     <SENTENCE>...
 
 OPTIONS:
-    -a, --alphabet <ALPHABET>              Alphabet to use [env: PHON_ALPHABET=] [default: nato]
+    -a, --alphabet <ALPHABET>              Alphabet to use [env: SALPH=] [default: nato]
     -h, --help                             Print help information
     -l, --list-alphabets                   List available alphabets
     -s, --show-alphabet <SHOW_ALPHABET>    Show the contents of an alphabet
     -V, --version                          Print version information
 ```
 
-`phon` can also be used through `stdin`:
+`salph` can also be used through `stdin`:
 
-`$ echo "some sentence" | phon`
+`$ echo "some sentence" | salph`
 
-Note that the alphabet can be set through either the `-a` command line option or the `PHON_ALPHABET` environment variable.
+Note that the alphabet can be set through either the `-a` command line option or the `SALPH` environment variable.
 
 ## Usage (library)
 
-See usage documentation at https://docs.rs/phonetic/latest/phonetic/
+See usage documentation at https://docs.rs/salph/latest/salph/
 
 ## Building
 
@@ -39,7 +39,7 @@ Make sure to have Rust installed. Then build with `cargo build`.
 
 ## Alphabets
 
-The list of supported alphabets is available at https://docs.rs/phonetic/latest/phonetic/enum.Alphabet.html and are kept in the [alphabets](https://github.com/wouterdebie/phonetic/tree/main/alphabets) directory. Most alphabets are taken from https://en.wikipedia.org/wiki/Spelling_alphabet. If you want to include other alphabets or have corrections, please add them and create a pull-request.
+The list of supported alphabets is available at https://docs.rs/salph/latest/salph/enum.Alphabet.html and are kept in the [alphabets](https://github.com/wouterdebie/salph/tree/main/alphabets) directory. Most alphabets are taken from https://en.wikipedia.org/wiki/Spelling_alphabet. If you want to include other alphabets or have corrections, please add them and create a pull-request.
 
 ## Contributing
 

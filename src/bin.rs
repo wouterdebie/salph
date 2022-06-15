@@ -7,7 +7,7 @@ use tabular::{Row, Table};
 #[clap(author, version, about, long_about = None)]
 struct Args {
     /// Alphabet to use
-    #[clap(short, long, env="PHON_ALPHABET", default_value_t = String::from("nato"), validator = phonetic::Phonetic::validate)]
+    #[clap(short, long, env="SALPH", default_value_t = String::from("nato"), validator = salph::SpellingAlphabet::validate)]
     alphabet: String,
     sentence: Vec<String>,
 
@@ -16,7 +16,7 @@ struct Args {
     list_alphabets: bool,
 
     /// Show the contents of an alphabet
-    #[clap(short, long, validator = phonetic::Phonetic::validate)]
+    #[clap(short, long, validator = salph::SpellingAlphabet::validate)]
     show_alphabet: Option<String>,
 }
 
@@ -31,12 +31,12 @@ fn main() {
 
     // Show the contents of an alphabet
     if let Some(alphabet) = cli.show_alphabet {
-        println!("{}", phonetic::Phonetic::from_str(&alphabet).unwrap());
+        println!("{}", salph::SpellingAlphabet::from_str(&alphabet).unwrap());
         return;
     }
 
     // Select current alphabet
-    let alphabet = phonetic::Phonetic::from_str(&cli.alphabet).unwrap();
+    let alphabet = salph::SpellingAlphabet::from_str(&cli.alphabet).unwrap();
 
     // Read the sentence from either stdin or arguments
     let sentence: Vec<String> = if cli.sentence.is_empty() {
@@ -67,7 +67,7 @@ fn read_from_stdin() -> Vec<String> {
 /// List all available alphabets
 fn list_alphabets() {
     println!("Available alphabets: ");
-    for alphabet in phonetic::Phonetic::list() {
+    for alphabet in salph::SpellingAlphabet::list() {
         println!("  - {}: {}", alphabet.0, alphabet.1);
     }
 }
