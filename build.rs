@@ -24,7 +24,7 @@ fn main() {
     let mut contents = String::new();
     contents.push_str(
         "use strum_macros::{Display, EnumString};\n\
-        #[derive(Debug, Display, EnumString)]\n\
+        #[derive(Debug, Display, EnumString, Clone)]\n\
         #[allow(non_camel_case_types)]\n\
         pub enum Alphabet {\n",
     );

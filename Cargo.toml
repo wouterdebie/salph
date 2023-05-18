@@ -1,6 +1,6 @@
 [package]
 name = "salph"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 authors = ["Wouter de Bie <wouter@evenflow.nl>"]
 description = "Small tool to help you spell in spelling alphabets"
@@ -8,7 +8,7 @@ license = "MIT"
 repository = "https://github.com/wouterdebie/salph/"
 
 [dependencies]
-clap = { version = "3.2.23", features = ['derive', 'env'] }
+clap = { version = "4.2.7", features = ['derive', 'env'] }
 colored = "2"
 indexmap = "1.8.0"
 rust-embed="6.3.0"

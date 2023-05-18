@@ -4,17 +4,27 @@
 //!
 //! Usage:
 //! ```
-//! use salph::{SpellingAlphabet, Alphabet};
+//! use salph::{SpellingAlphabet, Alphabet, Spelling};
 //! use std::str::FromStr;
 //!
 //! // Load a spelling alphabet using the Alphabet enum
 //! let spelling_alphabet = SpellingAlphabet::load(Alphabet::nato).unwrap();
-//! let word_list = spelling_alphabet.string_to_words("abc".to_string());
-//! assert_eq!(word_list, ["Alpha", "Bravo", "Charlie"]);
+//! let word_list = spelling_alphabet.str_to_spellings("abc123");
+//! assert_eq!(word_list, [
+//!     Spelling { spelling: "Alpha".to_string(), is_number: false },
+//!     Spelling { spelling: "Bravo".to_string(), is_number: false },
+//!     Spelling { spelling: "Charlie".to_string(), is_number: false },
+//!     Spelling { spelling: "one".to_string(), is_number: true },
+//!     Spelling { spelling: "two".to_string(), is_number: true },
+//!     Spelling { spelling: "three".to_string(), is_number: true },
+//! ]);
 //!
 //! // Load a spelling alphabet using an &str
 //! let spelling_alphabet = SpellingAlphabet::from_str("nato").unwrap();
-//! let word_list = spelling_alphabet.string_to_words("abc".to_string());
+//! let word_list = spelling_alphabet.str_to_spellings("abc")
+//!         .iter()
+//!         .map(|x| x.spelling.clone())
+//!         .collect::<Vec<_>>();
 //! assert_eq!(word_list, ["Alpha", "Bravo", "Charlie"]);
 //! ```
 //!
@@ -33,7 +43,7 @@ use substring::Substring;
 struct Asset;
 
 // Struct representing an alphabet
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SpellingAlphabet {
     words: IndexMap<String, String>,
     max_ngram_len: usize,
@@ -43,7 +53,7 @@ pub struct SpellingAlphabet {
 #[derive(Debug)]
 pub struct AlphabetNotFoundError {}
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Spelling {
     pub spelling: String,
     pub is_number: bool,
@@ -107,9 +117,9 @@ impl SpellingAlphabet {
     /// assert_eq!(res.is_err(), true);
     ///
     /// ```
-    pub fn validate(s: &str) -> Result<(), String> {
+    pub fn validate(s: &str) -> Result<String, String> {
         match Alphabet::from_str(s) {
-            Ok(_) => Ok(()),
+            Ok(_) => Ok(s.to_string()),
             Err(_) => Err(format!("Unknown alphabet: {}", s)),
         }
     }
@@ -144,10 +154,14 @@ impl SpellingAlphabet {
     /// use salph::{SpellingAlphabet, Alphabet};
     ///
     /// let spelling_alphabet = SpellingAlphabet::load(Alphabet::nato).unwrap();
-    /// let words = spelling_alphabet.string_to_words("Abc98".to_string());
+    /// let words = spelling_alphabet
+    ///         .str_to_spellings("Abc98")
+    ///         .iter()
+    ///         .map(|x| x.spelling.clone())
+    ///         .collect::<Vec<_>>();
     /// assert_eq!(words, ["Alpha", "Bravo", "Charlie", "nine", "eight"]);
     /// ```
-    pub fn string_to_spellings(&self, s: &String) -> Vec<Spelling> {
+    pub fn str_to_spellings(&self, s: &str) -> Vec<Spelling> {
         // Vector we'll eventually return
         let mut spellings = Vec::new();
 

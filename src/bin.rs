@@ -8,7 +8,7 @@ use tabular::{Row, Table};
 #[clap(author, version, about, long_about = None)]
 struct Args {
     /// Alphabet to use
-    #[clap(short, long, env="SALPH", default_value_t = String::from("nato"), validator = salph::SpellingAlphabet::validate)]
+    #[clap(short, long, env="SALPH", default_value_t = String::from("nato"), value_parser = salph::SpellingAlphabet::validate)]
     alphabet: String,
     sentence: Vec<String>,
 
@@ -17,7 +17,7 @@ struct Args {
     list_alphabets: bool,
 
     /// Show the contents of an alphabet
-    #[clap(short, long, validator = salph::SpellingAlphabet::validate)]
+    #[clap(short, long, value_parser = salph::SpellingAlphabet::validate)]
     show_alphabet: Option<String>,
 
     /// Disable colored output (word = green , number = yellow)
@@ -58,7 +58,7 @@ fn main() {
     let mut table = Table::new("{:<}  {:<}");
     for word in sentence {
         let spellings = alphabet
-            .string_to_spellings(&word)
+            .str_to_spellings(&word)
             .iter()
             .map(|w| {
                 if cli.disable_color {
