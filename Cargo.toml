@@ -1,6 +1,6 @@
 [package]
 name = "salph"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2021"
 authors = ["Wouter de Bie <wouter@evenflow.nl>"]
 description = "Small tool to help you spell in spelling alphabets"
@@ -11,7 +11,7 @@ repository = "https://github.com/wouterdebie/salph/"
 clap = { version = "4.2.7", features = ['derive', 'env'] }
 colored = "2"
 indexmap = "1.8.0"
-rust-embed="6.3.0"
+rust-embed="6.6.1"
 strum = "0.24"
 strum_macros = "0.24"
 substring = "1.4.5"
@@ -25,8 +25,5 @@ path = "src/bin.rs"
 name = "salph"
 path = "src/lib.rs"
 
-[dev-dependencies]
-cargo-bump = "1.1.0"
-
 [build-dependencies]
-rust-embed="6.3.0"
+rust-embed="6.6.1"
