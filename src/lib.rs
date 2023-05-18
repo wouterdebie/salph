@@ -22,6 +22,7 @@
 
 include!(concat!(env!("OUT_DIR"), "/alphabet_kinds.rs"));
 
+use core::fmt;
 use indexmap::IndexMap;
 use rust_embed::RustEmbed;
 use std::{cmp::Reverse, str::FromStr};
@@ -41,6 +42,18 @@ pub struct SpellingAlphabet {
 // Error returned when an alphabet can't be found
 #[derive(Debug)]
 pub struct AlphabetNotFoundError {}
+
+#[derive(Debug)]
+pub struct Spelling {
+    pub spelling: String,
+    pub is_number: bool,
+}
+
+impl fmt::Display for Spelling {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.spelling)
+    }
+}
 
 /// Struct that represents an Alphabet
 impl SpellingAlphabet {
@@ -118,7 +131,7 @@ impl SpellingAlphabet {
                 let header = &String::from_utf8_lossy(&file.data)[2..];
                 (
                     x.to_string(),
-                    header.split('\n').into_iter().next().unwrap().to_string(),
+                    header.split('\n').next().unwrap().to_string(),
                 )
             })
             .collect();
@@ -126,17 +139,17 @@ impl SpellingAlphabet {
         result
     }
 
-    /// Map a String to a vector of words.
+    /// Map a String to a vector of `Spelling`s.
     /// ```
     /// use salph::{SpellingAlphabet, Alphabet};
     ///
     /// let spelling_alphabet = SpellingAlphabet::load(Alphabet::nato).unwrap();
-    /// let words = spelling_alphabet.string_to_words("abc".to_string());
-    /// assert_eq!(words, ["Alpha", "Bravo", "Charlie"]);
+    /// let words = spelling_alphabet.string_to_words("Abc98".to_string());
+    /// assert_eq!(words, ["Alpha", "Bravo", "Charlie", "nine", "eight"]);
     /// ```
-    pub fn string_to_words(&self, s: String) -> Vec<String> {
+    pub fn string_to_spellings(&self, s: &String) -> Vec<Spelling> {
         // Vector we'll eventually return
-        let mut words = Vec::new();
+        let mut spellings = Vec::new();
 
         // The algorithm works as follows (using "foobar" as an input):
         // - We start by creating an ngram the size of `self.max_ngram_len` ("foo")
@@ -163,7 +176,7 @@ impl SpellingAlphabet {
                 // Make sure we don't go past the end of the string
                 if end <= s.len() {
                     // Create an ngram
-                    let ngram = s.substring(start, end).to_string();
+                    let ngram = s.substring(start, end).to_string().to_lowercase();
 
                     // If we have a match, we add it to our result vector and
                     // advance the start iterator.
@@ -178,7 +191,10 @@ impl SpellingAlphabet {
                     // consumed the first element and we need to the next two one (0 and 1),
                     // hence nth(1) or nth(3-2)
                     if let Some(word) = self.words.get(&ngram) {
-                        words.push(word.clone());
+                        spellings.push(Spelling {
+                            spelling: word.clone(),
+                            is_number: ngram.parse::<i32>().is_ok(),
+                        });
                         if ngram.len() > 1 {
                             it.nth(ngram.len() - 2);
                             // And we break the inner loop, because we need to reset the end
@@ -188,7 +204,7 @@ impl SpellingAlphabet {
                 }
             }
         }
-        words
+        spellings
     }
 }
 

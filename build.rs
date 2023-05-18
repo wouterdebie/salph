@@ -15,7 +15,7 @@ fn main() {
             let header = &String::from_utf8_lossy(&file.data)[2..];
             (
                 x.to_string(),
-                header.split('\n').into_iter().next().unwrap().to_string(),
+                header.split('\n').next().unwrap().to_string(),
             )
         })
         .collect();
@@ -38,7 +38,7 @@ fn main() {
     let out_dir = env::var_os("OUT_DIR").unwrap();
     dbg!(&out_dir);
     let dest_path = Path::new(&out_dir).join("alphabet_kinds.rs");
-    fs::write(&dest_path, contents).unwrap();
+    fs::write(dest_path, contents).unwrap();
 
     println!("cargo:rerun-if-changed=build.rs");
 }

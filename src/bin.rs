@@ -1,4 +1,5 @@
 use clap::Parser;
+use colored::*;
 use std::io::stdin;
 use std::str::FromStr;
 use tabular::{Row, Table};
@@ -18,6 +19,14 @@ struct Args {
     /// Show the contents of an alphabet
     #[clap(short, long, validator = salph::SpellingAlphabet::validate)]
     show_alphabet: Option<String>,
+
+    /// Disable colored output (word = green , number = yellow)
+    #[clap(short, long)]
+    disable_color: bool,
+
+    /// Separator to use when printing
+    #[clap(short = 'S', long, default_value = " ")]
+    separator: String,
 }
 
 fn main() {
@@ -48,11 +57,26 @@ fn main() {
     // Create a table with every letter mapped to a word from the alphabet
     let mut table = Table::new("{:<}  {:<}");
     for word in sentence {
-        table.add_row(
-            Row::new()
-                .with_cell(&word)
-                .with_cell(alphabet.string_to_words(word).join(" ")),
-        );
+        let spellings = alphabet
+            .string_to_spellings(&word)
+            .iter()
+            .map(|w| {
+                if cli.disable_color {
+                    w.to_string()
+                } else if w.is_number {
+                    w.spelling.yellow().to_string()
+                } else {
+                    w.spelling.green().to_string()
+                }
+            })
+            .collect::<Vec<String>>()
+            .join(&cli.separator);
+        let word = if cli.disable_color {
+            word.clone()
+        } else {
+            word.bright_cyan().bold().to_string()
+        };
+        table.add_row(Row::new().with_cell(&word).with_cell(spellings));
     }
     print!("{}", table);
 }
