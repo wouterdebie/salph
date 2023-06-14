@@ -75,10 +75,9 @@ impl SpellingAlphabet {
     ///
     /// assert_eq!(spelling_alphabet.is_ok(), true);
     /// ```
-    pub fn load(name: Alphabet) -> Result<SpellingAlphabet, AlphabetNotFoundError> {
+    pub fn load(alphabet: Alphabet) -> Result<SpellingAlphabet, AlphabetNotFoundError> {
         // Load the alphabet from an embedded asset into a utf8 string
-        let embedded_file_option = Asset::get(name.to_string().as_str());
-        let embedded_file = match &embedded_file_option {
+        let embedded_file = match Asset::get(alphabet.to_string().as_str()) {
             Some(f) => f,
             None => {
                 return Err(AlphabetNotFoundError {});

@@ -10,11 +10,11 @@ fn main() {
     let files: Vec<String> = Asset::iter().map(|a| a.to_string()).collect();
     let mut alphabets: Vec<(String, String)> = files
         .iter()
-        .map(|x| {
-            let file = Asset::get(x).unwrap();
-            let header = &String::from_utf8_lossy(&file.data)[2..];
+        .map(|file_path| {
+            let file = Asset::get(file_path).unwrap();
+            let header = &String::from_utf8_lossy(&file.data)[2..]; // Strip "# " from the header
             (
-                x.to_string(),
+                file_path.to_string(),
                 header.split('\n').next().unwrap().to_string(),
             )
         })
@@ -29,9 +29,9 @@ fn main() {
         pub enum Alphabet {\n",
     );
 
-    for a in alphabets {
-        contents.push_str(&format!("    /// {}\n", &a.1));
-        contents.push_str(&format!("    {},\n", &a.0));
+    for (language, header) in alphabets {
+        contents.push_str(&format!("    /// {}\n", header));
+        contents.push_str(&format!("    {},\n", language));
     }
     contents.push_str("}\n");
 
